@@ -1,0 +1,33 @@
+# Node.js
+node_modules/
+npm-debug.log*
+.env
+.env.local
+.env.*.local
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+crash.log
+*.backup
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+logs/
+*.out
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Grafana
+monitoring/grafana-dashboard.png

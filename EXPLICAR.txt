@@ -1,0 +1,485 @@
+1. Aplicação Web – Node.js com Express
+
+1. Importação do módulo express
+Copiar
+const express = require('express');
+Esse código importa o módulo express, que é um framework popular para criar aplicações web e APIs em Node.js.
+O express fornece funcionalidades para lidar com rotas, requisições HTTP, respostas e muito mais.
+2. Criação da aplicação Express
+Copiar
+const app = express();
+Aqui, criamos uma instância do Express chamada app. Essa instância será usada para definir rotas e configurar o servidor.
+3. Definição da porta
+Copiar
+const port = process.env.PORT || 3000;
+A constante port define a porta na qual o servidor irá rodar.
+process.env.PORT verifica se há uma variável de ambiente chamada PORT definida (isso é útil em ambientes de produção, como servidores na nuvem).
+Caso não exista uma variável de ambiente, o servidor usará a porta padrão 3000.
+4. Definição de uma rota /health
+Copiar
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+Esse trecho define uma rota HTTP do tipo GET que responde ao caminho /health.
+Quando um cliente (como um navegador ou um serviço externo) faz uma requisição para /health, o servidor responde com:
+Um status HTTP 200, que indica que a requisição foi bem-sucedida.
+A mensagem "OK" como corpo da resposta.
+Essa rota é comumente usada para verificar se o servidor está funcionando corretamente. É conhecida como "rota de saúde" ou "health check".
+
+5. Inicialização do servidor
+Copiar
+app.listen(port, () => {
+  console.log(`Servidor rodando na porta ${port}`);
+});
+O método app.listen() inicia o servidor na porta especificada em port.
+Quando o servidor começa a rodar, ele executa o callback fornecido (a função dentro do listen), que imprime no console:
+Servidor rodando na porta ${port} Isso é útil para saber que o servidor está ativo e em qual porta ele está escutando.
+Resumo do funcionamento completo:
+O código configura um servidor HTTP usando o framework Express.
+Define uma rota /health, que pode ser acessada para verificar se o servidor está funcionando.
+Inicia o servidor na porta especificada (por padrão, 3000) e exibe uma mensagem no console indicando que tudo está funcionando.
+Exemplo de uso:
+Se você rodar esse código e acessar no navegador ou via ferramentas como curl:
+
+Copiar
+http://localhost:3000/health
+Você verá a resposta:
+
+Copiar
+OK
+Isso indica que o servidor está funcionando corretamente
+
+2. Docker – Empacotando a Aplicação
+
+1. FROM node:18
+Esta linha especifica a imagem base a ser usada para construir a imagem Docker. No caso, está sendo usada a imagem oficial do Node.js na versão 18. Essa imagem já vem com o Node.js e o npm (Node Package Manager) instalados, o que facilita a configuração do ambiente para rodar aplicações Node.js.
+
+2. WORKDIR /app
+Define o diretório de trabalho dentro do contêiner como /app. Isso significa que, a partir deste ponto, todas as operações de comando (como copiar arquivos ou instalar pacotes) ocorrerão dentro desse diretório. Se o diretório não existir, ele será criado automaticamente.
+
+3. COPY package*.json ./
+Este comando copia os arquivos package.json e package-lock.json (caso existam) da máquina local para o diretório de trabalho do contêiner (/app).
+
+O uso do padrão package*.json permite copiar tanto o package.json quanto o package-lock.json (que é gerado automaticamente pelo npm). Esses arquivos contêm informações sobre as dependências da aplicação.
+4. RUN npm install
+Este comando executa o npm install dentro do contêiner. Ele instala todas as dependências listadas no arquivo package.json, garantindo que a aplicação tenha tudo o que precisa para rodar. Os pacotes são instalados no diretório node_modules, que também ficará dentro do contêiner.
+
+5. COPY . .
+Este comando copia todos os arquivos e pastas do diretório atual da máquina local para o diretório de trabalho do contêiner (/app). Isso inclui o código-fonte da aplicação e quaisquer outros arquivos necessários.
+
+Nota: É importante configurar um arquivo .dockerignore para evitar copiar arquivos desnecessários (como node_modules ou arquivos sensíveis) para dentro do contêiner.
+6. EXPOSE 3000
+Este comando informa ao Docker que o contêiner irá expor a porta 3000. Essa é a porta onde a aplicação estará escutando conexões (muito comum em aplicações Node.js).
+
+Importante: O comando EXPOSE não publica a porta automaticamente no host; ele apenas documenta que essa porta será usada no contêiner. Para expor a porta ao host, é necessário usar a flag -p no comando docker run (ex.: -p 3000:3000).
+7. CMD ["npm", "start"]
+O comando CMD define o comando padrão que será executado quando o contêiner for iniciado. Neste caso, ele executa npm start, que normalmente inicia a aplicação Node.js.
+
+O script start deve estar definido no arquivo package.json da aplicação, geralmente como algo como: "start": "node server.js". Esse script é responsável por iniciar o servidor da aplicação.
+Resumo Geral
+Este Dockerfile configura um ambiente Docker para uma aplicação Node.js, realizando os seguintes passos:
+
+Usa a imagem base do Node.js na versão 18.
+Define o diretório de trabalho como /app.
+Copia os arquivos necessários (package.json e package-lock.json) e instala as dependências.
+Copia todo o código-fonte da aplicação para o contêiner.
+Expõe a porta 3000 para acesso à aplicação.
+Configura o comando padrão para iniciar a aplicação (npm start).
+Esse é um padrão comum para criar imagens Docker de aplicações Node.js.
+
+3. CI/CD – GitHub Actions
+
+name: CI/CD Pipeline on: push: branches: [ main ] jobs: build-and-deploy: runs-on: ubuntu-latest steps: - name: Checkout código uses: actions/checkout@v3 - name: Configurar Node.js uses: actions/setup-node@v3 with: node-version: '18' - name: Instalar dependências run: npm install working-directory: ./app - name: Build Docker image run: docker build -t devops-api ./app - name: Testar rota /health run: | docker run -d -p 3000:3000 --name api devops-api sleep 5 curl -f http://localhost:3000/health docker stop api
+O código apresentado é um arquivo de configuração para o GitHub Actions, que é uma ferramenta de integração e entrega contínua (CI/CD). Ele define um pipeline automatizado que é executado sempre que houver um push na branch main de um repositório. Vamos detalhar cada parte do código:
+
+1. Nome do Workflow
+Copiar
+name: CI/CD Pipeline
+Este é o nome do workflow, chamado "CI/CD Pipeline". Ele será exibido na interface do GitHub Actions.
+2. Evento que dispara o workflow
+Copiar
+on:
+  push:
+    branches: [ main ]
+Este trecho define que o workflow será acionado sempre que houver um push na branch main. Ou seja, qualquer alteração enviada para a branch main do repositório irá disparar a execução do pipeline.
+3. Jobs
+Copiar
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+O bloco jobs define as tarefas que serão executadas no pipeline.
+O job principal é chamado build-and-deploy.
+A execução do job será feita em um ambiente virtual baseado no sistema operacional Ubuntu (a versão mais recente disponível no GitHub Actions: ubuntu-latest).
+4. Steps (Etapas do Job)
+O job build-and-deploy possui várias etapas (steps) que são executadas em sequência. Vamos analisar cada uma delas:
+
+4.1. Checkout do Código
+Copiar
+    - name: Checkout código
+      uses: actions/checkout@v3
+Esta etapa utiliza a ação oficial actions/checkout na versão v3.
+Ela clona o repositório (o código-fonte) na máquina virtual onde o job está sendo executado, permitindo que os arquivos sejam utilizados nas etapas seguintes.
+4.2. Configurar Node.js
+Copiar
+    - name: Configurar Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+Esta etapa utiliza a ação oficial actions/setup-node na versão v3.
+Ela instala e configura o Node.js, especificando a versão 18.
+Isso garante que o ambiente esteja preparado para executar comandos relacionados ao Node.js, como a instalação de dependências e execução de scripts.
+4.3. Instalar Dependências
+Copiar
+    - name: Instalar dependências
+      run: npm install
+      working-directory: ./app
+Esta etapa instala as dependências do projeto usando o comando npm install.
+O parâmetro working-directory: ./app indica que o comando será executado dentro da pasta app, presumivelmente onde o código do projeto está localizado.
+4.4. Build da Imagem Docker
+Copiar
+    - name: Build Docker image
+      run: docker build -t devops-api ./app
+Aqui, é feita a construção de uma imagem Docker para o projeto.
+O comando docker build cria a imagem Docker utilizando o Dockerfile presente no diretório ./app.
+A flag -t devops-api define o nome/tag da imagem como devops-api.
+4.5. Testar a Rota /health
+Copiar
+    - name: Testar rota /health
+      run: |
+        docker run -d -p 3000:3000 --name api devops-api
+        sleep 5
+        curl -f http://localhost:3000/health
+        docker stop api
+Esta etapa realiza testes básicos para verificar se a aplicação está funcionando corretamente. Vamos detalhar os comandos:
+
+Executar o container:
+
+Copiar
+docker run -d -p 3000:3000 --name api devops-api
+Este comando inicia um container baseado na imagem Docker devops-api.
+A flag -d executa o container em segundo plano.
+A flag -p 3000:3000 mapeia a porta 3000 do container para a porta 3000 da máquina host.
+O container é nomeado como api.
+Aguardar inicialização:
+
+Copiar
+sleep 5
+Aguarda 5 segundos para garantir que o container tenha tempo suficiente para inicializar.
+Testar a rota /health:
+
+Copiar
+curl -f http://localhost:3000/health
+Usa o comando curl para fazer uma requisição HTTP para a rota /health, exposta pelo container na porta 3000.
+A flag -f faz com que o comando retorne erro caso a resposta HTTP tenha um código de status diferente de 2xx.
+Parar o container:
+
+Copiar
+docker stop api
+Após realizar o teste, o container é parado para liberar recursos.
+Resumo do Processo
+O pipeline é acionado por um push na branch main.
+O código do repositório é clonado.
+O ambiente Node.js é configurado com a versão 18.
+As dependências do projeto são instaladas na pasta ./app.
+Uma imagem Docker chamada devops-api é construída com base no código do projeto.
+Um container é criado a partir da imagem, e um teste simples é realizado para verificar se a rota /health está funcionando corretamente.
+Após o teste, o container é parado.
+Esse pipeline é útil para garantir que o código enviado ao repositório esteja funcional e pronto para ser implantado em produção ou em outro ambiente.
+
+4. Infraestrutura – Terraform na AWS
+
+ se está atual) instance_type = "t2.micro" tags = { Name = "DevOpsAPI" } user_data = <<-EOF #!/bin/bash sudo apt update sudo apt install -y docker.io sudo systemctl start docker sudo docker run -d -p 80:3000 ghcr.io/seuusuario/devops-api EOF }
+Esse código é um script em Terraform, uma ferramenta de infraestrutura como código (IaC), que permite gerenciar recursos de infraestrutura na nuvem de forma declarativa. Abaixo segue uma explicação detalhada de cada parte do código:
+
+1. Configuração do Provider AWS
+Copiar
+provider "aws" {
+  region = "us-east-1"
+}
+provider "aws": Define que o Terraform usará o provedor da AWS para criar e gerenciar os recursos.
+region = "us-east-1": Especifica a região da AWS onde os recursos serão criados. Nesse caso, a região é US East (Norte da Virgínia).
+2. Definição do Recurso aws_instance
+Copiar
+resource "aws_instance" "devops_api" {
+  ami           = "ami-0c55b159cbfafe1f0" # Ubuntu 22.04 LTS (verifique se está atual)
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "DevOpsAPI"
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt update
+              sudo apt install -y docker.io
+              sudo systemctl start docker
+              sudo docker run -d -p 80:3000 ghcr.io/seuusuario/devops-api
+              EOF
+}
+Essa seção define uma instância EC2 na AWS com as seguintes configurações:
+
+Atributos principais:
+resource "aws_instance" "devops_api":
+
+Cria uma instância EC2 no provedor AWS.
+O nome lógico do recurso é devops_api, usado para referenciá-lo em outras partes do código.
+ami = "ami-0c55b159cbfafe1f0":
+
+Define a imagem de máquina da Amazon (AMI) que será usada para criar a instância.
+Nesse caso, é utilizada a AMI do Ubuntu 22.04 LTS. O ID pode variar dependendo da região e do tempo, então é importante verificar se está atualizado.
+instance_type = "t2.micro":
+
+Define o tipo da instância EC2.
+O tipo t2.micro é uma instância de baixo custo, ideal para testes e pequenos workloads, com direito ao nível gratuito da AWS (Free Tier).
+tags:
+
+Adiciona uma tag à instância EC2.
+A tag Name = "DevOpsAPI" ajuda na identificação da instância no console da AWS.
+Configuração de Inicialização (user_data):
+Copiar
+user_data = <<-EOF
+            #!/bin/bash
+            sudo apt update
+            sudo apt install -y docker.io
+            sudo systemctl start docker
+            sudo docker run -d -p 80:3000 ghcr.io/seuusuario/devops-api
+            EOF
+O bloco user_data contém um script bash que será executado automaticamente durante o processo de inicialização da instância EC2. Esse script configura a instância para rodar um container Docker com uma aplicação específica.
+
+Passo a passo do script:
+
+sudo apt update:
+
+Atualiza a lista de pacotes disponíveis no sistema operacional.
+sudo apt install -y docker.io:
+
+Instala o Docker na instância EC2.
+sudo systemctl start docker:
+
+Inicia o serviço Docker.
+sudo docker run -d -p 80:3000 ghcr.io/seuusuario/devops-api:
+
+Executa um container Docker em segundo plano (-d) com a aplicação hospedada no repositório do GitHub Container Registry (ghcr.io/seuusuario/devops-api).
+O container expõe a porta interna 3000 e a mapeia para a porta 80 da instância EC2, tornando a aplicação acessível via HTTP na porta 80.
+Resumo
+Este código cria uma instância EC2 na AWS (região us-east-1) com o Ubuntu 22.04 LTS como sistema operacional. Durante a inicialização, a instância instala o Docker, inicia o serviço Docker e executa um container com uma aplicação hospedada no GitHub Container Registry. A aplicação será acessível via HTTP na porta 80.
+
+Esse script é útil para automatizar o provisionamento de servidores que rodam aplicações baseadas em containers, como parte de um pipeline DevOps ou para projetos simples em nuvem.
+
+/terraform/variables.tf
+
+variable "aws_access_key" {} variable "aws_secret_key" {}
+Os códigos apresentados são trechos escritos na linguagem Terraform, que é uma ferramenta de infraestrutura como código (IaC) usada para provisionar e gerenciar recursos em diferentes provedores de nuvem, como AWS, Azure, Google Cloud, entre outros.
+
+Vamos explicar cada parte do código:
+
+Código:
+Copiar
+variable "aws_access_key" {}
+Explicação:
+Este código define uma variável chamada aws_access_key. Em Terraform, as variáveis são usadas para armazenar valores que podem ser reutilizados em diferentes partes do código. No caso, aws_access_key provavelmente será usada para armazenar a chave de acesso (Access Key) da AWS, que é necessária para autenticar e interagir com os serviços da Amazon Web Services.
+
+O bloco {} está vazio, o que significa que nenhuma configuração adicional foi definida para essa variável. Por exemplo, não há valores padrão ou descrições associadas à variável. O valor dessa variável será atribuído posteriormente, seja através de um arquivo de variáveis (.tfvars), da linha de comando ou de outra forma.
+
+Código:
+Copiar
+variable "aws_secret_key" {}
+Explicação:
+Este código define outra variável, chamada aws_secret_key. Esta variável será usada para armazenar a chave secreta (Secret Key) da AWS. A chave secreta é outro componente necessário para autenticação ao usar a AWS.
+
+Assim como no exemplo anterior, o bloco {} está vazio, indicando que não há configurações adicionais para esta variável.
+
+Contexto geral:
+Essas duas variáveis (aws_access_key e aws_secret_key) são normalmente usadas para configurar credenciais de acesso à AWS em um projeto Terraform. Geralmente, elas são referenciadas em outros trechos do código Terraform para autenticação com o provedor AWS, como no exemplo abaixo:
+
+Copiar
+provider "aws" {
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
+  region     = "us-east-1"
+}
+No exemplo acima:
+
+var.aws_access_key utiliza o valor armazenado na variável aws_access_key.
+var.aws_secret_key utiliza o valor armazenado na variável aws_secret_key.
+Observação importante:
+Manter credenciais como aws_access_key e aws_secret_key diretamente no código pode ser inseguro. É recomendado usar práticas como:
+
+Armazenar essas variáveis em arquivos separados (.tfvars) e garantir que eles não sejam versionados no Git (adicionando ao .gitignore).
+Utilizar ferramentas de gerenciamento de segredos, como AWS Secrets Manager.
+Configurar credenciais utilizando perfis locais (~/.aws/credentials) ao invés de expor diretamente no código.
+Essas boas práticas ajudam a proteger informações sensíveis e evitar comprometimentos de segurança.
+
+5. Monitoramento – Prometheus + Grafana
+
+Este código é uma configuração típica do Prometheus, que é uma ferramenta de monitoramento e alerta de código aberto. Ele coleta métricas de serviços e as armazena em uma base de dados temporais para análise e consulta. Vamos explicar cada parte do código:
+
+1. Bloco global
+Copiar
+global:
+  scrape_interval: 15s
+O bloco global contém configurações globais que serão aplicadas a todas as tarefas de coleta de métricas configuradas no Prometheus.
+A chave scrape_interval define o intervalo de tempo entre as coletas de métricas. Neste caso, o Prometheus irá buscar (ou "raspar") as métricas a cada 15 segundos.
+2. Bloco scrape_configs
+Copiar
+scrape_configs:
+  - job_name: 'devops-api'
+    static_configs:
+      - targets: ['localhost:3000']
+O bloco scrape_configs define as configurações para as tarefas de coleta de métricas. Cada tarefa é chamada de job.
+Aqui, está sendo definido um job chamado devops-api (nome arbitrário, que serve para identificar o serviço que está sendo monitorado).
+Detalhamento:
+job_name:
+
+Nome do job (tarefa). Neste caso, o nome é devops-api.
+Este nome é útil para categorizar as métricas coletadas e identificá-las posteriormente.
+static_configs:
+
+Define as configurações estáticas para os endpoints (endereços) que o Prometheus deve monitorar.
+Cada endpoint ou serviço que será monitorado é especificado na lista targets.
+targets:
+
+Lista de endpoints (endereços) onde o Prometheus buscará as métricas.
+No exemplo, o Prometheus irá buscar métricas no endereço localhost:3000, ou seja, no servidor local na porta 3000.
+Este endereço normalmente corresponde a um endpoint que expõe métricas no formato esperado pelo Prometheus (como /metrics).
+Explicação Geral
+Este arquivo de configuração indica que o Prometheus irá:
+
+Coletar métricas a cada 15 segundos (scrape_interval: 15s).
+Monitorar um serviço chamado devops-api.
+Buscar as métricas no endereço localhost:3000.
+O serviço que está rodando em localhost:3000 precisa estar configurado para expor métricas no formato esperado pelo Prometheus (geralmente no endpoint /metrics). Essas métricas podem incluir informações como uso de CPU, memória, número de requisições, etc., dependendo do que o serviço está expondo.
+
+Se você precisar integrar isso com um serviço específico, como uma API ou aplicação, certifique-se de que ela esteja configurada corretamente para expor essas métricas no endpoint correto. Ferramentas como o Prometheus Client Libraries podem ajudar a implementar isso em várias linguagens de programação.
+
+5.1 /monitoring/docker-compose.yml
+
+rafana: image: grafana/grafana ports: - "3001:3000"
+O código mostrado é um arquivo docker-compose.yml, utilizado pelo Docker Compose para definir e gerenciar múltiplos serviços em contêineres. Ele utiliza a versão 3 do formato do Docker Compose. Abaixo está uma explicação detalhada de cada parte do código:
+
+Estrutura Geral
+Copiar
+version: '3'
+version: '3': Define a versão do formato do arquivo docker-compose.yml. A versão 3 é uma das mais usadas e suporta diversas funcionalidades modernas do Docker Compose.
+Copiar
+services:
+services: Define os serviços que serão executados em contêineres. Cada serviço é como um aplicativo ou componente que será executado em seu próprio contêiner.
+Serviço Prometheus
+Copiar
+prometheus:
+  image: prom/prometheus
+  volumes:
+    - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  ports:
+    - "9090:9090"
+prometheus: Nome do serviço. Este será o contêiner responsável por executar o Prometheus, que é uma ferramenta de monitoramento e coleta de métricas.
+
+image: prom/prometheus: Especifica a imagem Docker que será usada para criar o contêiner. Aqui, está sendo utilizada a imagem oficial do Prometheus disponível no Docker Hub.
+
+volumes:
+
+Define um volume para mapear arquivos ou diretórios do sistema host para dentro do contêiner.
+./prometheus.yml:/etc/prometheus/prometheus.yml:
+O arquivo prometheus.yml, localizado no diretório atual do host (indicado por ./), será montado dentro do contêiner no caminho /etc/prometheus/prometheus.yml.
+Isso permite que o Prometheus dentro do contêiner use o arquivo de configuração do host para configurar seu comportamento.
+ports:
+
+Define o mapeamento de portas entre o host e o contêiner.
+"9090:9090":
+A porta 9090 no host será mapeada para a porta 9090 no contêiner.
+Isso significa que o Prometheus estará acessível no host na URL http://localhost:9090.
+Serviço Grafana
+Copiar
+grafana:
+  image: grafana/grafana
+  ports:
+    - "3001:3000"
+grafana: Nome do serviço. Este será o contêiner responsável por executar o Grafana, uma ferramenta de visualização e análise de métricas.
+
+image: grafana/grafana: Especifica a imagem Docker que será usada para criar o contêiner. Aqui, está sendo utilizada a imagem oficial do Grafana disponível no Docker Hub.
+
+ports:
+
+Define o mapeamento de portas entre o host e o contêiner.
+"3001:3000":
+A porta 3001 no host será mapeada para a porta 3000 no contêiner.
+Isso significa que o Grafana estará acessível no host na URL http://localhost:3001.
+Resumo Geral
+O arquivo configura dois serviços:
+
+Prometheus: Uma ferramenta de monitoramento que coleta métricas e as expõe na porta 9090.
+Grafana: Uma ferramenta de visualização de métricas que estará acessível na porta 3001.
+O Prometheus utiliza um volume para carregar seu arquivo de configuração (prometheus.yml) do sistema host.
+
+Esses dois serviços podem ser usados juntos para monitorar sistemas ou aplicações, onde o Prometheus coleta as métricas, e o Grafana apresenta essas métricas em um painel visual interativo.
+
+Se você executar este arquivo com o comando docker-compose up, os dois serviços serão iniciados e estarão prontos para uso.
+
+README.md (modelo)
+
+🚀 Projeto DevOps Vitrine
+Este é um projeto que demonstra um pipeline completo de DevOps. Ele cobre desde a automação de deploys (CI/CD) até a infraestrutura como código e monitoramento, usando tecnologias modernas.
+
+Tecnologias utilizadas
+Node.js + Express:
+
+A aplicação principal é desenvolvida com Node.js, utilizando o framework Express para criar uma API ou servidor web.
+Docker:
+
+A aplicação é containerizada, permitindo que seja executada em qualquer ambiente de forma consistente.
+GitHub Actions:
+
+É usado para configurar um pipeline de integração contínua (CI) e entrega contínua (CD), automatizando testes, builds e deploys.
+Terraform + AWS:
+
+O Terraform é usado para provisionar a infraestrutura na AWS (Amazon Web Services). Isso significa que os recursos como servidores, bancos de dados, redes, etc., são criados de forma automatizada e declarativa.
+Prometheus + Grafana:
+
+Ferramentas de monitoramento:
+Prometheus coleta métricas da aplicação e da infraestrutura.
+Grafana exibe essas métricas em dashboards visuais e fáceis de entender.
+Funcionalidades do projeto
+Deploy automático via CI/CD:
+
+Quando o código é atualizado no repositório (por exemplo, no GitHub), o pipeline configurado no GitHub Actions é acionado automaticamente para realizar testes, builds e deploys na infraestrutura provisionada.
+Infraestrutura provisionada com Terraform:
+
+A infraestrutura necessária para rodar a aplicação (máquinas virtuais, redes, etc.) é criada automaticamente com os arquivos de configuração do Terraform.
+Monitoramento com Prometheus e Grafana:
+
+O estado da aplicação e da infraestrutura é monitorado em tempo real, com métricas como uso de CPU, memória, número de requisições, etc., sendo exibidas no Grafana.
+Como executar localmente
+Este projeto pode ser testado localmente de várias formas:
+
+1. Executar a aplicação diretamente
+Copiar
+cd app
+npm install
+npm start
+Navegue até o diretório app, onde está o código da aplicação.
+Instale as dependências do Node.js com npm install.
+Inicie a aplicação com npm start. A aplicação estará acessível em http://localhost:3000.
+2. Executar a aplicação com Docker
+Copiar
+docker build -t devops-api .
+docker run -p 3000:3000 devops-api
+Construa uma imagem Docker da aplicação usando docker build. O nome da imagem será devops-api.
+Execute o contêiner com docker run, mapeando a porta 3000 do contêiner para a porta 3000 do host. A aplicação estará acessível em http://localhost:3000.
+3. Executar o monitoramento
+Copiar
+cd monitoring
+docker-compose up
+Navegue até o diretório monitoring, onde estão os arquivos de configuração do Prometheus e Grafana.
+Inicie os serviços de monitoramento usando docker-compose up. Isso irá subir contêineres para o Prometheus e o Grafana.
+Depois de iniciado:
+O Prometheus estará disponível na porta configurada (geralmente http://localhost:9090).
+O Grafana estará disponível na interface web (geralmente http://localhost:3000 ou outra porta configurada).
+Resumo
+Este projeto é um exemplo prático e completo de um ambiente DevOps moderno. Ele combina:
+
+Desenvolvimento da aplicação (Node.js + Express),
+Containerização (Docker),
+Automação de deploys (GitHub Actions),
+Provisionamento de infraestrutura (Terraform + AWS),
+Monitoramento (Prometheus + Grafana).
+A execução local permite testar tanto a aplicação quanto o monitoramento, facilitando o aprendizado e a implementação em produção.
