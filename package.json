@@ -2,9 +2,9 @@
   "name": "devops-vitrine",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "app/server.js",
   "scripts": {
-    "test":"node server.js"
+    "start":"node app/server.js"
   },
   "keywords": [],
   "author": "",
