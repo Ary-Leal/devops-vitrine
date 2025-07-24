@@ -483,3 +483,72 @@ Automação de deploys (GitHub Actions),
 Provisionamento de infraestrutura (Terraform + AWS),
 Monitoramento (Prometheus + Grafana).
 A execução local permite testar tanto a aplicação quanto o monitoramento, facilitando o aprendizado e a implementação em produção.
+
+gitgnore 
+
+Os códigos que você forneceu são uma lista de padrões usados em arquivos .gitignore. O arquivo .gitignore é usado em projetos Git para especificar quais arquivos ou diretórios devem ser ignorados pelo sistema de controle de versão. Isso significa que os itens listados no .gitignore não serão rastreados pelo Git, o que ajuda a evitar o versionamento de arquivos desnecessários ou sensíveis.
+
+Aqui está a explicação de cada seção e os itens listados:
+
+Node.js
+Copiar
+node_modules/
+npm-debug.log*
+.env
+.env.local
+.env.*.local
+node_modules/: Ignora a pasta node_modules, onde ficam os pacotes instalados pelo npm ou yarn. Essa pasta é gerada automaticamente e não deve ser versionada.
+npm-debug.log*: Ignora arquivos de log gerados pelo npm durante a execução ou falhas (npm-debug.log).
+.env: Ignora arquivos .env, que geralmente contêm variáveis de ambiente sensíveis (como chaves de API, senhas, etc.).
+.env.local: Ignora arquivos .env.local, usados para variáveis de ambiente específicas de desenvolvimento.
+.env.*.local: Ignora qualquer arquivo .env com um sufixo adicional antes de .local, como .env.production.local.
+Docker
+Copiar
+*.log
+docker-compose.override.yml
+*.log: Ignora qualquer arquivo com extensão .log, que geralmente são logs gerados durante o uso do Docker ou outras ferramentas.
+docker-compose.override.yml: Ignora o arquivo docker-compose.override.yml, que é usado para configurar substituições locais no Docker Compose e geralmente não deve ser versionado.
+Terraform
+Copiar
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+crash.log
+*.backup
+*.tfstate: Ignora arquivos .tfstate, que armazenam o estado atual da infraestrutura gerenciada pelo Terraform. Esses arquivos podem conter dados sensíveis.
+*.tfstate.*: Ignora quaisquer variantes do arquivo .tfstate, como backups ou versões temporárias.
+.terraform/: Ignora a pasta .terraform, que contém arquivos internos e cache do Terraform.
+terraform.tfvars: Ignora o arquivo terraform.tfvars, que geralmente contém variáveis sensíveis usadas pelo Terraform.
+crash.log: Ignora arquivos de log gerados quando o Terraform encontra um erro crítico (crash).
+*.backup: Ignora arquivos de backup gerados automaticamente pelo Terraform.
+VS Code
+Copiar
+.vscode/
+.vscode/: Ignora a pasta .vscode, que contém configurações específicas do editor Visual Studio Code. Essas configurações geralmente são locais e não precisam ser versionadas.
+Logs
+Copiar
+*.log
+logs/
+*.out
+*.log: Ignora qualquer arquivo com extensão .log, que contém logs de execução.
+logs/: Ignora a pasta logs, usada para armazenar logs do sistema ou da aplicação.
+*.out: Ignora qualquer arquivo com extensão .out, que pode ser usado para saída de programas ou logs.
+OS files
+Copiar
+.DS_Store
+Thumbs.db
+.DS_Store: Ignora arquivos .DS_Store, que são criados automaticamente pelo macOS para armazenar informações sobre diretórios (como ícones e visualizações).
+Thumbs.db: Ignora arquivos Thumbs.db, criados automaticamente pelo Windows para armazenar miniaturas de imagens em diretórios.
+Grafana
+Copiar
+monitoring/grafana-dashboard.png
+monitoring/grafana-dashboard.png: Ignora o arquivo grafana-dashboard.png, que provavelmente é uma imagem exportada ou gerada para visualização de dashboards do Grafana. Esse tipo de arquivo geralmente não precisa ser versionado.
+Resumo
+O objetivo geral desses padrões no .gitignore é evitar versionar:
+
+Arquivos gerados automaticamente (logs, caches, backups).
+Configurações locais específicas (como variáveis de ambiente ou configurações de editor).
+Arquivos sensíveis (como chaves de API e estados do Terraform).
+Arquivos irrelevantes ao projeto (como arquivos do sistema operacional).
+Isso ajuda a manter o repositório limpo, seguro e focado apenas nos arquivos essenciais ao projeto.
