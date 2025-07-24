@@ -1,22 +1,23 @@
 1. Aplicação Web – Node.js com Express
 
 1. Importação do módulo express
-Copiar
+
 const express = require('express');
 Esse código importa o módulo express, que é um framework popular para criar aplicações web e APIs em Node.js.
 O express fornece funcionalidades para lidar com rotas, requisições HTTP, respostas e muito mais.
+
 2. Criação da aplicação Express
-Copiar
+
 const app = express();
 Aqui, criamos uma instância do Express chamada app. Essa instância será usada para definir rotas e configurar o servidor.
 3. Definição da porta
-Copiar
+
 const port = process.env.PORT || 3000;
 A constante port define a porta na qual o servidor irá rodar.
 process.env.PORT verifica se há uma variável de ambiente chamada PORT definida (isso é útil em ambientes de produção, como servidores na nuvem).
 Caso não exista uma variável de ambiente, o servidor usará a porta padrão 3000.
 4. Definição de uma rota /health
-Copiar
+
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
@@ -27,7 +28,7 @@ A mensagem "OK" como corpo da resposta.
 Essa rota é comumente usada para verificar se o servidor está funcionando corretamente. É conhecida como "rota de saúde" ou "health check".
 
 5. Inicialização do servidor
-Copiar
+
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
 });
@@ -45,7 +46,6 @@ Copiar
 http://localhost:3000/health
 Você verá a resposta:
 
-Copiar
 OK
 Isso indica que o servidor está funcionando corretamente
 
