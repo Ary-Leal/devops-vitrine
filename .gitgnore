@@ -31,3 +31,8 @@ Thumbs.db
 
 # Grafana
 monitoring/grafana-dashboard.png
+
+. ssh/ario
+. ssh/ario.pub
+ario
+ario.pub
